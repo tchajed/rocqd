@@ -6,9 +6,9 @@ See [notes.md](notes.md) for background research on VsRocq internals, the Rocq O
 
 Rocq compilation is slow. Running `rocq compile foo.v` starts a fresh Rocq process, loads all dependencies from `.vo` files, processes every sentence from scratch, and exits. If you change one tactic in the middle of a file, the entire prefix must be re-executed. If you add a `Check` or `Print` query to inspect intermediate state, the file must be re-compiled from scratch.
 
-The interactive IDE story (VsRocq) solves this for editor use — it maintains a persistent Rocq process, tracks sentence boundaries, and navigates forward/back as the user edits. But this machinery is locked behind an LSP server coupled to VS Code. There is no way to get these benefits from the command line, from a Makefile, from CI, or from any non-VS-Code editor without speaking LSP.
+The interactive IDE story (VsRocq) solves this for editor use — it maintains a persistent Rocq process, tracks sentence boundaries, and navigates forward/back as the user edits. But this machinery is locked behind an LSP server coupled to VS Code. There is no way to get these benefits from the command line.
 
-`rocqd` is a daemon that brings incremental, cached Rocq compilation to the command line. The interface is simply `rocq compile`, but under the hood, persistent Rocq instances are maintained, state is re-used by navigating forward and back in response to source changes, and queries can be injected without losing any compilation state.
+`rocqd` is a daemon that brings incremental, cached Rocq compilation to the command line. The interface is simply `rocq compile`, but under the hood, persistent Rocq instances are maintained, state is re-used by navigating forward and back in response to source changes, and queries can be injected from the command line without losing any compilation state.
 
 ## Language Choice
 
@@ -206,7 +206,7 @@ VsRocq does not support `.vo` generation (see notes.md). For workflows that need
 - Single file session: didOpen, didChange, interpretToEnd.
 - Collect diagnostics and report to caller.
 - Query support via prover/check, prover/print, etc.
-- CLI wrapper script.
+- CLI wrapper script that exposes compilation and queries.
 
 ### Phase 2: Multi-file sessions and dependency tracking
 
@@ -219,12 +219,6 @@ VsRocq does not support `.vo` generation (see notes.md). For workflows that need
 
 - Check-then-compile workflow.
 - Background `rocq compile` after successful check.
-
-### Phase 4: Upstream integration
-
-- Coordinate with SOCCA refactoring to share code with VsRocq.
-- Potentially propose a `prover/documentSentences` endpoint upstream.
-- Propose `rocq compile --daemon` flag upstream.
 
 ## Key Risks and Open Questions
 
